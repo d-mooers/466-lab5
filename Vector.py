@@ -4,18 +4,27 @@ import pandas as pd
 import math
 
 tf = lambda wordFreq, maxFreq: wordFreq / maxFreq
+
+def parseVector(line):
+    [author, words, tfidf] = [s.strip() for s in line.split("|")]
+    words = [s.strip() for s in words.split(",")]
+    tfidf = [float(s.strip()) for s in tfidf.split(",")]
+    return Vector(author=author, words=words, values=tfidf)
 class Vector:
-    def __init__(self, author="", indices=[], values=[]):
-        self.tf_idf = {}
+    def __init__(self, author="", words=[], values=[]):
+        self.tf_idf = {word: tfidf for word, tfidf in zip(words, values)}
         self.words = {}
         self.maxFrequency = 0
         self.length = 0
         self.author = author
         
+        if len(values) > 0:
+            self.length = np.sqrt(np.sum(np.array(values) ** 2))
+        
     # other is another Vector
     def cosine(self, other):
-        sharedKeys = set(self.words.keys()).intersection(set(other.words.keys()))
-        return sum([self.words[key] * other.words[key] for key in sharedKeys]) / (self.length * other.length)
+        sharedKeys = set(self.tf_idf.keys()).intersection(set(other.tf_idf.keys()))
+        return sum([self.tf_idf[key] * other.tf_idf[key] for key in sharedKeys]) / (self.length * other.length)
     
     def okapi(self, other):
         pass

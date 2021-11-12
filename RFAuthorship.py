@@ -97,11 +97,7 @@ def main():
     forest.buildForest(tmp)
     testing = tmp.drop(columns=classAttr)
     classifications = forest.classifyMany(tmp)
-    print(classifications)
-    print(tmp[classAttr])
-    # classifyPoints(
-    #     tmp, k, classAttr, threshold, list(tmp.head()), numeric, m, numDataPoints, N, silent
-    # )
+    classifications.to_csv("rfAuthorship.out")
 
 
 

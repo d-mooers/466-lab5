@@ -40,7 +40,7 @@ def vectorize(directory, dataOut, truthOut):
     documentFrequency  = {}
     allVectors = {}
     sparseOutPut = []
-    for file in documentFiles[::100]:
+    for file in documentFiles:
         wordCounted = set()
         with open(file, 'r') as fp:
             vector = Vector()
@@ -66,7 +66,7 @@ def vectorize(directory, dataOut, truthOut):
     vectorDataFrame.to_csv(dataOut)
     groundTruth.to_csv(truthOut)
     
-    with open(f'sparse.out', 'w') as fp:
+    with open(f'sparse-{dataOut}', 'w') as fp:
         for line in sparseOutPut:
             fp.write(line + '\n')
     
@@ -76,10 +76,10 @@ def parse():
         "directory", type=str, help="directory of 50-50 dataset"
     )
     parser.add_argument(
-        "--out", type=str, nargs='?', default='./data.out'
+        "--out", type=str, nargs='?', default='data.out'
     )
     parser.add_argument(
-        "--truth", type=str, nargs='?', default='./truth.out'
+        "--truth", type=str, nargs='?', default='truth.out'
     )
 
 
