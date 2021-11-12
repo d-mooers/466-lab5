@@ -133,7 +133,7 @@ def main():
 
     # tmp = tmp.sample(frac=1)
     result = crossValidateKnn(vectors, folds, k)
-    result.to_csv("knnAuthorship.out")
+    result.to_csv(f'knnAuthorship_k_{k}.out')
 
 def crossValidateKnn(vectors, k, numNeighbors):
     if k == -1:
