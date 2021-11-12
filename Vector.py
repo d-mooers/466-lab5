@@ -9,9 +9,12 @@ class Vector:
         self.tf_idf = {}
         self.words = {}
         self.maxFrequency = 0
+        self.length = 0
         
+    # other is another Vector
     def cosine(self, other):
-        pass
+        sharedKeys = set(self.words.keys()).intersection(set(other.words.keys()))
+        return sum([self.words[key] * other.words[key] for key in sharedKeys]) / (self.length * other.length)
     
     def okapi(self, other):
         pass
@@ -28,7 +31,9 @@ class Vector:
             if docFrequencies[word] == 1:
                 del docFrequencies[word]
             else:
-                self.tf_idf[word] = tf(freq, self.maxFrequency) * math.log2(n / docFrequencies[word])      
+                self.tf_idf[word] = tf(freq, self.maxFrequency) * math.log2(n / docFrequencies[word]) 
+                self.length += self.tf_idf[word] ** 2
+        self.length = math.sqrt(self.length)     
     
     def removeWord(self, word):
         if word not in self.words:
