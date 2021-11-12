@@ -8,19 +8,15 @@
 
 
 import pandas as pd
-from validation import crossValidateForest
-from displayResults import calcMetrics, displayMetrics
 import argparse
 from pathlib import Path
+from Forest import RandomForest
 
 
 def parse():
     parser = argparse.ArgumentParser(description="Random Forest Algorithm")
     parser.add_argument(
         "trainingSetFile", type=str, help="name of csv file containing dataset"
-    )
-    parser.add_argument(
-        "restrictionsFile", type=str, nargs="?", help="file containing restrictions"
     )
     parser.add_argument(
         "--t",
@@ -78,68 +74,35 @@ def main():
 
     tmp = pd.read_csv(training_fname)
 
-    header = list(tmp)
-    domain = tmp.iloc[[0]].values.tolist()[0]
-    classAttr = tmp.iloc[[1]].values.tolist()[0][0]
-    skip = [i for i, j in zip(header, domain) if int(j) < 0]
-    numeric = [i for i, j in zip(header, domain) if int(j) == 0]
+    # header = list(tmp)
+    # domain = tmp.iloc[[0]].values.tolist()[0]
+    # classAttr = tmp.iloc[[1]].values.tolist()[0][0]
+    # skip = [i for i, j in zip(header, domain) if int(j) < 0]
+    # numeric = [i for i, j in zip(header, domain) if int(j) == 0]
+    classAttr = "_Author_"
 
-    tmp.drop(tmp.index[[0]], inplace=True)
-    tmp.drop(tmp.index[[0]], inplace=True)
-    tmp.drop(columns=skip)
-    skip2 = tmp[(tmp == "?").any(axis=1)]
-    tmp.drop(skip2.index, axis=0, inplace=True)
-    tmp.reset_index(drop=True, inplace=True)
-
-    restrs = []
-
-    if args["restrictionsFile"]:
-        restr_fname = args["restrictionsFile"]
-        restrs = Path(restr_fname).read_text().replace("\n", "").split(",")
-    else:
-        restrs = [1 for _ in range(len(domain))]
-
-    restr = [i for i, j in zip(tmp.head(), restrs) if j == 1]
-
+    # tmp.drop(tmp.index[[0]], inplace=True)
+    # tmp.drop(tmp.index[[0]], inplace=True)
+    # tmp.drop(columns=skip)
+    # skip2 = tmp[(tmp == "?").any(axis=1)]
+    # tmp.drop(skip2.index, axis=0, inplace=True)
+    # tmp.reset_index(drop=True, inplace=True)
+    attributes = list(tmp.head())
+    numeric = [i for i in attributes if i != classAttr]
     pd.options.display.max_columns = None
     pd.options.display.max_rows = None
     pd.options.display.max_seq_items = None
     pd.options.display.width = 0
-    runCrossValidationForest(
-        tmp, k, classAttr, threshold, restr, numeric, m, numDataPoints, N, silent
-    )
+    forest = RandomForest(tmp, classAttr, threshold, attributes, numeric, m, numDataPoints, N)
+    forest.buildForest(tmp)
+    testing = tmp.drop(columns=classAttr)
+    classifications = forest.classifyMany(tmp)
+    print(classifications)
+    print(tmp[classAttr])
+    # classifyPoints(
+    #     tmp, k, classAttr, threshold, list(tmp.head()), numeric, m, numDataPoints, N, silent
+    # )
 
-
-def runCrossValidationForest(
-    tmp,
-    k,
-    classAttr,
-    threshold,
-    restr,
-    numeric,
-    m,
-    numDataPoints,
-    N,
-    silent,
-    showResults=True,
-    displayTable=False,
-):
-    tmp = tmp.sample(frac=1)
-
-    classified = crossValidateForest(
-        tmp, k, classAttr, threshold, restr, numeric, m, numDataPoints, N
-    )
-    result = tmp.copy()
-    result["Predicted " + classAttr] = classified
-    result.to_csv("./results.csv")
-    return displayMetrics(
-        tmp,
-        classified,
-        classAttr,
-        silent,
-        displayTable=displayTable,
-        showResults=showResults,
-    )
 
 
 if __name__ == "__main__":

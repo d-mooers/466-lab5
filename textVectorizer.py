@@ -40,7 +40,7 @@ def vectorize(directory, dataOut, truthOut):
     documentFrequency  = {}
     allVectors = {}
     sparseOutPut = []
-    for file in documentFiles:
+    for file in documentFiles[::100]:
         wordCounted = set()
         with open(file, 'r') as fp:
             vector = Vector()
@@ -53,11 +53,12 @@ def vectorize(directory, dataOut, truthOut):
             vectors.append(vector)
             authors.append(author)
             fileNames.append(name)
-    for vector in vectors:
+    for vector, author in zip(vectors, authors):
         vector.calcTfIdf(len(documentFiles), documentFrequency)
-        sparseOutPut.append(vector.outputSparseVector())
+        sparseOutPut.append(f'{author} | {vector.outputSparseVector()}')
     for word in documentFrequency.keys():
         allVectors[word] = [vector.tf_idf.get(word, 0) for vector in vectors]
+    allVectors['_Author_'] = authors
         
     groundTruth = pd.DataFrame({"id": list(range(len(vectors))), "file": fileNames, "author": authors})        
     vectorDataFrame = pd.DataFrame(allVectors)
@@ -66,7 +67,8 @@ def vectorize(directory, dataOut, truthOut):
     groundTruth.to_csv(truthOut)
     
     with open(f'sparse.out', 'w') as fp:
-        fp.writelines(sparseOutPut)
+        for line in sparseOutPut:
+            fp.write(line + '\n')
     
 def parse():
     parser = argparse.ArgumentParser(description="C45")

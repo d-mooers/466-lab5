@@ -5,11 +5,12 @@ import math
 
 tf = lambda wordFreq, maxFreq: wordFreq / maxFreq
 class Vector:
-    def __init__(self, indices=[], values=[]):
+    def __init__(self, author="", indices=[], values=[]):
         self.tf_idf = {}
         self.words = {}
         self.maxFrequency = 0
         self.length = 0
+        self.author = author
         
     # other is another Vector
     def cosine(self, other):

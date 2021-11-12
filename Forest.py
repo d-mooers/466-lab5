@@ -41,6 +41,7 @@ class RandomForest:
     def buildOneTree(self, df):
         data = selectData(df, self.classAttributeName, self.m, self.k)
         attributes = set(data.columns)
+        attributes.remove(self.classAttributeName)
         return self.c45._buildTree(data, attributes.copy())
 
     def buildForest(self, df):

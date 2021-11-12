@@ -155,6 +155,7 @@ class C45:
                 maxSplittingNumber = gain[1]
         if maxGainRatio < self.threshold:
             return None
+
         return (maxGainAttribute, maxSplittingNumber)
 
     def findBestSplit(self, Ai, df):
