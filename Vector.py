@@ -32,8 +32,9 @@ class Vector:
         sharedKeys = set(self.tf_idf.keys()).intersection(set(other.tf_idf.keys()))
         return sum([self.tf_idf[key] * other.tf_idf[key] for key in sharedKeys]) / (self.length * other.length)
     
-    def okapi(self, other, documentFrequencies, avgDocLength, k1=1, k2=100, b=0.75):
-        return sum([okapiInner(self.tf_idf[word], other.tf_idf.get(word, 0), documentFrequencies[word], len(documentFrequencies), len(self.tf_idf), avgDocLength, k1, k2, b) for word in self.tf_idf.keys()])
+    def okapi(self, other, documentFrequencies, avgDocLength, n, k1=1, k2=100, b=0.75):
+        sharedKeys = set(self.tf_idf.keys()).intersection(set(other.tf_idf.keys()))
+        return sum([okapiInner(self.tf_idf[word], other.tf_idf.get(word, 0), documentFrequencies[word], len(documentFrequencies), len(self.tf_idf), avgDocLength, k1, k2, b) for word in sharedKeys])
     
     def addWord(self, word):
         if self.words.get(word) is None:

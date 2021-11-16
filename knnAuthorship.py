@@ -7,6 +7,7 @@
 # Purpose - Performs K nearest neighbors algorihtm
 
 import argparse
+from numpy.core.fromnumeric import mean
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -15,43 +16,23 @@ import math
 from collections import Counter
 from Vector import Vector, parseVector
 
-
+OKAPI = "okapi"
 class KNN:
-    def __init__(self, vectors, k, metric="cosine"):
+    def __init__(self, vectors, k, metric, documentFrequencies, avgDocLength, n):
         self.vectors = vectors
         self.k = k
-        self.simMetric = metric
+        self.metric = metric
+        self.documentFrequencies = documentFrequencies
+        self.avgDocLength = avgDocLength
+        self.n = n
 
-    def manhattan(self, a, b):
-        val2 = np.sum(np.absolute(a - b))
-        return val2
-
-    def anti_dice(self, a, b):
-        return np.sum(a == b) / self.numCategorical
-        # matches = [i for i in a if i in b]
-        # return (self.numCategorical - len(matches)) / self.numCategorical
-
-    def normalize(self, val, attribute):
-        castedVal = float(val)
-        maxVal = float(self.maxValues[attribute])
-        minVal = float(self.minValues[attribute])
-        return (castedVal - minVal) / (maxVal - minVal)
-
-    def get_numeric(self, row):
-        return row[self.isNumeric]
-
-    def get_categorical(self, row):
-        val = row[self.isCategorical]
-        return val
-
-    def dist(self, p1, p2):
-        return p1.cosine(p2)
-
-    def _dist(self, p1, p2):
-        return p1.cosine(p2)
+    def dist(self, doc, query):
+        if self.metric == OKAPI:
+            return doc.okapi(query, self.documentFrequencies, self.avgDocLength, self.n)
+        return doc.cosine(query)
 
     def process_row(self, vector):
-        distances = np.vectorize(lambda x: self._dist(vector, x))(self.vectors)
+        distances = np.vectorize(lambda x: self.dist(vector, x))(self.vectors)
         sortedIndices = np.argsort(distances)
         return [self.vectors[i].author for i in sortedIndices[-self.k:]]
 
@@ -121,21 +102,23 @@ def main():
     metric = args['metric']
 
     vectors = []
+    documentFrequencies = {}
     with open(training_fname, 'r') as fp:
-        vectors = np.array([parseVector(line) for line in fp.readlines()])
+        lines = fp.readlines()
+        vectors = np.array([parseVector(line) for line in lines[:-1]])
+        documentFrequencies = parseVector(lines[-1]).tf_idf
+    avgDocLength = mean(np.vectorize(lambda v: len(v.tf_idf))(vectors))
         
-    knn = KNN(vectors, k)
-
     pd.options.display.max_columns = None
     pd.options.display.max_rows = None
     pd.options.display.max_seq_items = None
     pd.options.display.width = 0
 
     # tmp = tmp.sample(frac=1)
-    result = crossValidateKnn(vectors, folds, k)
-    result.to_csv(f'knnAuthorship_k_{k}.out')
+    result = crossValidateKnn(vectors, folds, k, metric, documentFrequencies, avgDocLength)
+    result.to_csv(f'knnAuthorship_k_{k}_{metric}.out')
 
-def crossValidateKnn(vectors, k, numNeighbors):
+def crossValidateKnn(vectors, k, numNeighbors, metric, documentFrequencies, avgDocLength):
     if k == -1:
         k = len(vectors) - 1
 
@@ -144,7 +127,7 @@ def crossValidateKnn(vectors, k, numNeighbors):
     for start in range(len(vectors)):
         dropout = vectors[start]
         train = np.concatenate((vectors[:start], vectors[start + rowsPerSplit :]))
-        knn = KNN(train, numNeighbors)
+        knn = KNN(train, numNeighbors, metric, documentFrequencies, avgDocLength, len(vectors))
 
         prediciton = knn.classifyRow(dropout)
         result.append(prediciton)
