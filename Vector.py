@@ -10,6 +10,12 @@ def parseVector(line):
     words = [s.strip() for s in words.split(",")]
     tfidf = [float(s.strip()) for s in tfidf.split(",")]
     return Vector(author=author, words=words, values=tfidf)
+
+def okapiInner(fij, fiq, dfi, n, dlj, avDl, k1, k2, b):
+    left = math.log((n - dfi + 0.5) / (dfi + 0.5))
+    middle = ((k1 + 1) * fij) / (k1 * (1 - b + b * dlj / avDl) + fij)
+    right = ((k2 + 1) * fiq) / (k2 + fiq)
+    return left * middle * right
 class Vector:
     def __init__(self, author="", words=[], values=[]):
         self.tf_idf = {word: tfidf for word, tfidf in zip(words, values)}
@@ -26,8 +32,8 @@ class Vector:
         sharedKeys = set(self.tf_idf.keys()).intersection(set(other.tf_idf.keys()))
         return sum([self.tf_idf[key] * other.tf_idf[key] for key in sharedKeys]) / (self.length * other.length)
     
-    def okapi(self, other):
-        pass
+    def okapi(self, other, documentFrequencies, avgDocLength, k1=1, k2=100, b=0.75):
+        return sum([okapiInner(self.tf_idf[word], other.tf_idf.get(word, 0), documentFrequencies[word], len(documentFrequencies), len(self.tf_idf), avgDocLength, k1, k2, b) for word in self.tf_idf.keys()])
     
     def addWord(self, word):
         if self.words.get(word) is None:
@@ -35,6 +41,16 @@ class Vector:
         self.words[word] += 1
         self.maxFrequency = max(self.words[word], self.maxFrequency)
         
+    def calcTf(self, docFrequencies):
+        entries = self.words.items()
+        for word, freq in entries:
+            if docFrequencies[word] == 1:
+                del docFrequencies[word]
+            else:
+                self.tf_idf[word] = tf(freq, self.maxFrequency) 
+                self.length += self.tf_idf[word] ** 2
+        self.length = math.sqrt(self.length)     
+    
     def calcTfIdf(self, n, docFrequencies):
         entries = self.words.items()
         for word, freq in entries:

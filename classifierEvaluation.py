@@ -62,16 +62,16 @@ def calcMetrics(groundTruth, predicitons, k=1):
             matrix[name] = {}
         if matrix.get(name).get(name) is None:
             matrix[name][name] = 0
-        recall[name] = hits[name] / (hits[name] + misses[name])
-        precision[name] = hits[name] / (hits[name] + strikes[name])
-        f1[name] = (2 * recall[name] * precision[name]) / (recall[name] + precision[name])
+        recall[name] = hits.get(name, 0) / max((hits.get(name, 0) + misses.get(name, 0)), 1)
+        precision[name] = hits.get(name, 0) / max((hits.get(name, 0) + strikes.get(name, 0)), 1)
+        f1[name] = (2 * recall[name] * precision[name]) / max((recall[name] + precision[name]), 1)
         metrics['author'].append(name)
         metrics['recall'].append(recall[name])
         metrics['precision'].append(precision[name])
         metrics['f1'].append(f1[name])
-        metrics['hits'].append(hits[name])
-        metrics['misses'].append(misses[name])
-        metrics['strikes'].append(strikes[name])
+        metrics['hits'].append(hits.get(name, 0))
+        metrics['misses'].append(misses.get(name, 0))
+        metrics['strikes'].append(strikes.get(name, 0))
         
 
     metrics = pd.DataFrame.from_dict(metrics)

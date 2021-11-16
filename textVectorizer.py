@@ -31,7 +31,7 @@ def updateDocumentFrequency(df, word, wordAdded):
         df[word] += 1
         wordAdded.add(word)
 
-def vectorize(directory, dataOut, truthOut):
+def vectorize(directory, dataOut, truthOut, useTf=False):
     documentFiles = glob.glob(f'{directory}/*/*/*.txt')
     
     vectors = []
@@ -54,8 +54,12 @@ def vectorize(directory, dataOut, truthOut):
             authors.append(author)
             fileNames.append(name)
     for vector, author in zip(vectors, authors):
-        vector.calcTfIdf(len(documentFiles), documentFrequency)
+        if useTf:
+            vector.calcTf(documentFrequency)
+        else:
+            vector.calcTfIdf(len(documentFiles), documentFrequency)
         sparseOutPut.append(f'{author} | {vector.outputSparseVector()}')
+    sparseOutPut.append(f'_DocFrequency_ | {",".join(documentFrequency.keys())} | {",".join([str(df) for df in documentFrequency.values()])}')
     for word in documentFrequency.keys():
         allVectors[word] = [vector.tf_idf.get(word, 0) for vector in vectors]
     allVectors['_Author_'] = authors
@@ -81,6 +85,9 @@ def parse():
     parser.add_argument(
         "--truth", type=str, nargs='?', default='truth.out'
     )
+    parser.add_argument(
+        "--tf-only", action="store_true", default=False
+    )
 
 
     args = vars(parser.parse_args())
@@ -92,7 +99,7 @@ def main():
     dataDirectory = args["directory"]
     dataOutputLoc = args['out']
     truthOutputLoc = args['truth']
-    vectorize(dataDirectory, dataOutputLoc, truthOutputLoc)
+    vectorize(dataDirectory, dataOutputLoc, truthOutputLoc, args['tf_only'])
     
 if __name__ == "__main__": 
     main()

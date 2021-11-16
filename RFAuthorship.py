@@ -71,9 +71,7 @@ def main():
 
     threshold = args["t"]
     silent = args["s"]
-
     tmp = pd.read_csv(training_fname)
-
     # header = list(tmp)
     # domain = tmp.iloc[[0]].values.tolist()[0]
     # classAttr = tmp.iloc[[1]].values.tolist()[0][0]
@@ -97,7 +95,7 @@ def main():
     forest.buildForest(tmp)
     testing = tmp.drop(columns=classAttr)
     classifications = forest.classifyMany(tmp)
-    classifications.to_csv("rfAuthorship.out")
+    classifications.to_csv(f'rfAuthorship_n{N}_m{m}_k{numDataPoints}.out')
 
 
 
