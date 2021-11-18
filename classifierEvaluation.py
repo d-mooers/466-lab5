@@ -10,6 +10,10 @@ def parse():
     parser.add_argument(
         "expected", type=str, help="Path to output of ground truth"
     )
+    parser.add_argument(
+        "--output", type=str, default="", nargs="?", help="Path to output of ground truth"
+    )
+
     args = vars(parser.parse_args())
     return args
 
@@ -85,7 +89,7 @@ def calcMetrics(groundTruth, predicitons, k=1):
 
 
 def displayMetrics(
-    data, results, classAttr, silent, k=1, displayTable=True, showResults=True
+    data, results, classAttr, silent, outputFile="", k=1, displayTable=True, showResults=True
 ):
     pd.options.display.max_columns = None
     pd.options.display.max_rows = None
@@ -96,24 +100,25 @@ def displayMetrics(
         data[classAttr], results, k=k
     )
     if showResults:
-        print("Confusion Matrix:\n")
-        print(matrix)
         print("Total Correct: ", correct)
         print("Total Errors: ", errors)
         print("Accuracy: ", correct / total)
         print("Error Rate: ", errors / total)
         print("Metrics: ")
         print(metrics)
-
+    if len(outputFile) > 0:
+        matrix.to_csv(outputFile)
     return correct / total
 
 def main():
     args = parse()
     actualPath = args['actual']
     expectedPath = args['expected']
-    actual = pd.read_csv(actualPath)
+    outputFile = args['output']
+    actual = pd.read_csv(actualPath).rename(columns={"0": "author"})
+    
     expected = pd.read_csv(expectedPath)
-    displayMetrics(expected, actual['author'], 'author', False)
+    displayMetrics(expected, actual['author'], 'author', False, outputFile)
 
 if __name__ == '__main__':
     main()

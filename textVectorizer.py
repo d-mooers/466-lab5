@@ -63,7 +63,7 @@ def vectorize(directory, dataOut, truthOut, useTf=False):
     for word in documentFrequency.keys():
         allVectors[word] = [vector.tf_idf.get(word, 0) for vector in vectors]
     allVectors['_Author_'] = authors
-        
+    print(len(documentFrequency))
     groundTruth = pd.DataFrame({"id": list(range(len(vectors))), "file": fileNames, "author": authors})        
     vectorDataFrame = pd.DataFrame(allVectors)
     

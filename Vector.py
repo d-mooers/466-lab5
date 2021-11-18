@@ -34,6 +34,7 @@ class Vector:
     
     def okapi(self, other, documentFrequencies, avgDocLength, n, k1=1, k2=100, b=0.75):
         sharedKeys = set(self.tf_idf.keys()).intersection(set(other.tf_idf.keys()))
+        origin = np.array
         return sum([okapiInner(self.tf_idf[word], other.tf_idf.get(word, 0), documentFrequencies[word], len(documentFrequencies), len(self.tf_idf), avgDocLength, k1, k2, b) for word in sharedKeys])
     
     def addWord(self, word):
@@ -55,7 +56,9 @@ class Vector:
     def calcTfIdf(self, n, docFrequencies):
         entries = self.words.items()
         for word, freq in entries:
-            if docFrequencies[word] == 1:
+            if docFrequencies.get(word) is None:
+                continue
+            if docFrequencies.get(word, 0) == 1 or docFrequencies.get(word, 5000) > 2500:
                 del docFrequencies[word]
             else:
                 self.tf_idf[word] = tf(freq, self.maxFrequency) * math.log2(n / docFrequencies[word]) 

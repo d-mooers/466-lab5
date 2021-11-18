@@ -2,8 +2,8 @@
 
 echo "Bash version ${BASH_VERSION}..."
 
-for i in {20..80..2}
+for i in {1..20..5}
 	do
 		echo "Running KNN with k = $i"
-		python knnAuthorship.py sparse-termFrequencies.out --k $i --metric okapi
+		python knnAuthorship.py sparse-data.out --k $i --metric cosine
 	done
